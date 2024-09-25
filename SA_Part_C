@@ -1,0 +1,304 @@
+Some proficient or advanced level data analysis tasks that can be performed on the Netflix Movies & TV Shows dataset -
+
+1] CORRELATION & FEATURE ENGINEERING :-
+Step 1: Import Libraries and Load the Dataset
+Python Code
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Set seaborn aesthetics
+sns.set(style="whitegrid")
+
+Step 2: Data Preprocessing
+We'll clean and prepare the dataset for correlation analysis and feature engineering.
+Python Code
+# Convert 'date_added' to datetime format and extract year and month
+df['date_added'] = pd.to_datetime(df['date_added'], errors='coerce')
+df['year_added'] = df['date_added'].dt.year
+df['month_added'] = df['date_added'].dt.month
+
+# Fill missing values for 'duration' and convert to numeric
+df['duration'] = df['duration'].str.replace(' min', '').astype(float)
+df['duration'] = df['duration'].fillna(df['duration'].median())
+
+# Drop rows with missing values in essential columns
+df = df.dropna(subset=['duration', 'year_added', 'month_added'])
+
+Step 3: Feature Engineering
+Create new features that might be useful for analysis and modeling.
+Python Code
+# Create features based on 'listed_in' to capture genre information
+df_genres = df['listed_in'].str.get_dummies(sep=', ')
+
+# Add new features to the original DataFrame
+df_engineered = pd.concat([df[['type', 'release_year', 'rating', 'duration', 'year_added', 'month_added']], df_genres], axis=1)
+
+# Display the first few rows of the engineered DataFrame
+df_engineered.head()
+
+Step 4: Correlation Analysis
+Analyze the correlation between numerical features and the engineered features.
+Python Code
+# Compute the correlation matrix
+correlation_matrix = df_engineered.corr()
+
+# Plot the heatmap
+plt.figure(figsize=(14, 10))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
+plt.title('Correlation Matrix of Engineered Features', fontsize=16)
+plt.show()
+
+Step 5: Analyze Correlations
+Based on the correlation matrix, identify any strong correlations between features. For example, you might see strong correlations between the duration of movies and the year they were added.
+
+Step 6: Create New Features Based on Insights
+Use the correlations to create new features that might capture important patterns.
+Python Code
+# Example feature: Create a feature that captures whether a movie or TV show is recent or not
+df_engineered['recent'] = df_engineered['year_added'] > df_engineered['release_year']
+
+# Example feature: Interaction term between 'duration' and 'release_year'
+df_engineered['duration_release_interaction'] = df_engineered['duration'] * df_engineered['release_year']
+
+# Display the new features
+df_engineered[['recent', 'duration_release_interaction']].head()
+
+Step 7: Feature Selection
+Based on correlation and feature importance analysis, select the most relevant features for modeling.
+Python Code
+from sklearn.feature_selection import SelectKBest, f_classif
+
+# Select the top 10 features based on ANOVA F-value
+X = df_engineered.drop(columns=['type'])  # Drop non-numeric target variable if present
+y = df['type']  # Example target variable (categorical)
+
+# Encode the target variable
+from sklearn.preprocessing import LabelEncoder
+label_encoder = LabelEncoder()
+y_encoded = label_encoder.fit_transform(y)
+
+# Feature selection
+selector = SelectKBest(score_func=f_classif, k=10)
+X_new = selector.fit_transform(X, y_encoded)
+
+# Get the selected feature names
+selected_features = X.columns[selector.get_support()]
+print('Selected Features:', selected_features.tolist())
+Summary of Correlation and Feature Engineering:
+1.	Data Preprocessing: Cleaned and prepared data, converting categorical features and handling missing values.
+2.	Feature Engineering: Created new features such as recent content indicators and interaction terms.
+3.	Correlation Analysis: Analyzed correlations to understand relationships between features.
+4.	Feature Selection: Selected the most relevant features for modeling using techniques like SelectKBest.
+These steps help in understanding the relationships within your dataset and improving the quality of features for predictive modeling.
+
+2] ADVANCED VISUALIZATIONS :-
+Step 1: Import Libraries
+Ensure you have the necessary libraries. If not, you can install them using pip:
+Bash Code
+pip install plotly wordcloud
+
+Python Code
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from wordcloud import WordCloud
+import plotly.express as px
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Set seaborn aesthetics
+sns.set(style="whitegrid")
+
+Step 2: Prepare Data for Visualizations
+We'll prepare the dataset by processing and cleaning it as needed.
+Python Code
+# Convert 'date_added' to datetime format
+df['date_added'] = pd.to_datetime(df['date_added'], errors='coerce')
+
+# Fill missing values for 'duration' and convert to numeric
+df['duration'] = df['duration'].fillna('0 min')
+df['duration'] = df['duration'].str.replace(' min', '').astype(int)
+
+# One-hot encode 'listed_in' to analyze genre distribution
+df_genres = df['listed_in'].str.get_dummies(sep=', ')
+
+Step 3: Pairplot for Feature Relationships
+A pairplot helps visualize relationships between multiple features, such as release_year, duration, and different genres.
+Python Code
+# Combine numerical features and top genres
+df_combined = pd.concat([df[['release_year', 'duration']], df_genres], axis=1)
+
+# Plot pairplot
+plt.figure(figsize=(14, 12))
+sns.pairplot(df_combined, diag_kind='kde', plot_kws={'alpha':0.5})
+plt.suptitle('Pairplot of Netflix Features', y=1.02, fontsize=16)
+plt.show()
+
+Step 4: Heatmap of Genre Correlations
+This heatmap shows the correlation between different genres, revealing how genres often appear together.
+Python Code
+# Compute the correlation matrix of genres
+genre_corr = df_genres.corr()
+
+# Plot the heatmap
+plt.figure(figsize=(12, 10))
+sns.heatmap(genre_corr, cmap='coolwarm', annot=True, fmt='.2f', linewidths=0.5)
+plt.title('Correlation Heatmap of Genres', fontsize=16)
+plt.show()
+
+Step 5: Word Cloud of Most Common Genres
+A word cloud can visualize the frequency of different genres, with more common genres appearing larger.
+Python Code
+# Aggregate the count of each genre
+genre_counts = df_genres.sum().sort_values(ascending=False)
+
+# Create a word cloud
+wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(genre_counts)
+
+# Plot the word cloud
+plt.figure(figsize=(14, 8))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')
+plt.title('Word Cloud of Most Common Genres', fontsize=16)
+plt.show()
+
+Step 6: Interactive Plotly Visualization of Content Trends
+Plotly can create interactive visualizations to explore trends over time, such as the number of titles added by year or by genre.
+Python Code
+import plotly.express as px
+
+# Create a DataFrame for the number of titles added by year
+df['year_added'] = df['date_added
+Continuing from where we left off:
+
+Python Code
+# Create a DataFrame for the number of titles added by year
+df['year_added'] = df['date_added'].dt.year
+
+# Count the number of titles added per year
+titles_per_year = df.groupby('year_added').size().reset_index(name='count')
+
+# Create an interactive line plot with Plotly
+fig = px.line(titles_per_year, x='year_added', y='count', title='Number of Titles Added to Netflix per Year', markers=True)
+fig.update_layout(xaxis_title='Year', yaxis_title='Number of Titles')
+fig.show()
+Summary of Advanced Visualizations
+1.	Pairplot: Shows relationships between multiple numerical features and genres.
+2.	Heatmap of Genre Correlations: Reveals correlations between different genres.
+3.	Word Cloud: Visualizes the most common genres with larger fonts for more frequent genres.
+4.	Interactive Plotly Visualization: Allows interactive exploration of trends over time.
+These advanced visualizations provide a deeper understanding of the dataset, highlighting complex relationships and trends in Netflix content.
+
+3] PREDICTIVE MODELING :-
+Step 1: Import Libraries
+Ensure you have the necessary libraries installed. If not, install them using pip:
+Bash Code
+pip install scikit-learn
+
+Python Code
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Set seaborn aesthetics
+sns.set(style="whitegrid")
+
+Step 2: Data Preprocessing
+We'll process and clean the data, focusing on converting categorical features into numerical ones and handling missing values.
+Python Code
+# Drop rows with missing target values (genres)
+df = df.dropna(subset=['listed_in'])
+
+# Convert 'duration' to numeric (strip ' min' and convert to integers)
+df['duration'] = df['duration'].str.replace(' min', '').astype(int)
+
+# Encode categorical features
+df_encoded = pd.get_dummies(df[['type', 'release_year', 'rating', 'duration']], drop_first=True)
+
+# Extract top 5 genres for classification and one-hot encode them
+top_genres = df['listed_in'].str.get_dummies(sep=', ').sum().nlargest(5).index
+df_genres = df['listed_in'].str.get_dummies(sep=', ').loc[:, top_genres]
+
+# Combine encoded features and top genres
+df_model = pd.concat([df_encoded, df_genres], axis=1)
+
+# Define features (X) and target (y)
+X = df_model
+y = df_genres.idxmax(axis=1)  # Assuming each title belongs to one of the top genres
+
+# Encode target variable
+label_encoder = LabelEncoder()
+y_encoded = label_encoder.fit_transform(y)
+
+Step 3: Split Data into Training and Test Sets
+We’ll split the data into training and test sets to evaluate the performance of our model.
+Python Code
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.3, random_state=42)
+
+# Standardize the features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+Step 4: Train a Predictive Model
+We'll use a Random Forest Classifier for this task, but you can experiment with other classifiers like Logistic Regression, SVM, or Gradient Boosting.
+Python Code
+# Initialize and train the model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Predict on the test set
+y_pred = model.predict(X_test_scaled)
+
+Step 5: Evaluate the Model
+We’ll evaluate the model’s performance using accuracy and classification metrics.
+Python Code
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+
+# Print classification report
+print(classification_report(y_test, y_pred, target_names=label_encoder.classes_))
+
+Step 6: Feature Importance Analysis
+Understanding which features are most influential in predicting the genre can be insightful.
+Python Code
+# Plot feature importance
+feature_importances = model.feature_importances_
+features = X.columns
+importance_df = pd.DataFrame({'Feature': features, 'Importance': feature_importances}).sort_values(by='Importance', ascending=False)
+
+plt.figure(figsize=(12, 8))
+sns.barplot(x='Importance', y='Feature', data=importance_df)
+plt.title('Feature Importance in Genre Prediction', fontsize=16)
+plt.show()
+Summary of Predictive Modeling:
+1.	Data Preprocessing: Cleaned and encoded features, handling missing values.
+2.	Feature and Target Selection: Selected features and one-hot encoded the target variable (top genres).
+3.	Train-Test Split: Divided the data into training and test sets.
+4.	Model Training: Used Random Forest Classifier to predict the genre.
+5.	Evaluation: Assessed model performance with accuracy and classification metrics.
+6.	Feature Importance: Analyzed which features were most influential in predicting genres.
+This approach will help you understand the key factors influencing the genre of content and enable predictions based on the dataset.
+
+
+
+
+
+

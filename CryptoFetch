@@ -1,0 +1,95 @@
+1)
+from requests import Request, Session
+from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+import json
+
+url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+parameters = {
+  'start':'1',
+  'limit':'5000',
+  'convert':'USD'
+}
+headers = {
+  'Accepts': 'application/json',
+  'X-CMC_PRO_API_KEY': 'ea69222f-161f-4865-9a72-491b4e3367b1',
+}
+
+session = Session()
+session.headers.update(headers)
+
+try:
+  response = session.get(url, params=parameters)
+  data = json.loads(response.text)
+  #print(data)
+except (ConnectionError, Timeout, TooManyRedirects) as e:
+  print(e)
+
+2)
+import pandas as pd
+
+3)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+
+df = pd.json_normalize(data['data'])
+df['timestamp'] = pd.to_datetime('now')
+df
+
+4)
+def API_runner():
+    from requests import Request, Session
+    from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
+    import json
+
+    url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+    parameters = {
+      'start':'1',
+      'limit':'5000',
+      'convert':'USD'
+    }
+    headers = {
+      'Accepts': 'application/json',
+      'X-CMC_PRO_API_KEY': 'ea69222f-161f-4865-9a72-491b4e3367b1',
+    }
+    
+    session = Session()
+    session.headers.update(headers)
+    
+    try:
+      response = session.get(url, params=parameters)
+      data = json.loads(response.text)
+      #print(data)
+    except (ConnectionError, Timeout, TooManyRedirects) as e:
+      print(e)
+
+
+    
+    df = pd.json_normalize(data['data'])
+    df['timestamp'] = pd.to_datetime('now')
+    #df_append = pd.DataFrame(df2)
+    #df = pd.concat([df2,df_append])
+
+    if not os.path.isfile(r'C:\Users\lenovo\Desktop\DA_files\API_Data.csv'):
+        df.to_csv(r'C:\Users\lenovo\Desktop\DA_files\API_Data.csv', header = 'column_names')
+    else:
+        df.to_csv(r'C:\Users\lenovo\Desktop\DA_files\API_Data.csv', mode = 'a', header = False)
+
+        
+5)
+import os
+from time import time
+from time import sleep
+
+for i in range(333):
+    API_runner()
+    print('API Runner Completed Successfully !')
+    sleep(60)
+exit()
+
+6)
+df12 = pd.read_csv(r'C:\Users\lenovo\Desktop\DA_files\API_Data.csv')
+df12
+
+7)
+pd.set_option('display.float_format', lambda x : '%.5f' % x)
+

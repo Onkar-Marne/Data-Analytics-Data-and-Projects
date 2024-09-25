@@ -1,0 +1,119 @@
+(1)
+# IMPORT LIBRARIES        
+from bs4 import BeautifulSoup
+import requests
+import time
+import datetime
+import smtplib
+import csv
+import datetime
+import pandas as pd
+
+(2)
+# CONNECTING TO THE WEBSITE AND PULLING THE DATA 
+#URL = 'https://www.amazon.com/Costume-T-Shirt-Crewneck-Cartoon-Cosplay/dp/B0CN36J2PB/ref=sr_1_1_sspa?dib=eyJ2IjoiMSJ9.CtTqms-2ICkM5BJmH3lw_KG5_w2fX7OuRWF80UuJ1XrKxo90ajNQNBRvRWQPrQW83nxqULwFOd8aBpwBx21c6qCN0vl98qwfZ5ggc3HPvO9AkH6epeuQosxfIPzfgpfmEolrxMvP8EdkBtjJYdqScGZHbqyM6k8WhDILTuhiL0CIji4ukk6TpqvaRkC6KmsA1l7EOl1DaMYx9Zv-QgyEBD9er8rf_D7AUmUcAJEm8KTNuwIpqDRpVmnu7yb_EiF8cBAE6ebg5vy150lp2HyULP9hFh_0D5h16SOxH9DSZPI.1kBTLjub0j1_nYI9QVpmzsRcDqtp5MLjlfe6ER5EbAg&dib_tag=se&keywords=anime+t+shirts+for+men&qid=1716955360&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1'
+URL1 = 'https://www.amazon.com/Anime-Stylish-Cloud-Pattern-Hawaiian/dp/B0CJC6DTH9/ref=sr_1_2_sspa?dib=eyJ2IjoiMSJ9.CtTqms-2ICkM5BJmH3lw_KG5_w2fX7OuRWF80UuJ1XrKxo90ajNQNBRvRWQPrQW83nxqULwFOd8aBpwBx21c6qCN0vl98qwfZ5ggc3HPvO9AkH6epeuQosxfIPzfgpfmEolrxMvP8EdkBtjJYdqScGZHbqyM6k8WhDILTuhiL0CIji4ukk6TpqvaRkC6KmsA1l7EOl1DaMYx9Zv-QgyEBD9er8rf_D7AUmUcAJEm8KTNuwIpqDRpVmnu7yb_EiF8cBAE6ebg5vy150lp2HyULP9hFh_0D5h16SOxH9DSZPI.1kBTLjub0j1_nYI9QVpmzsRcDqtp5MLjlfe6ER5EbAg&dib_tag=se&keywords=anime+t+shirts+for+men&qid=1716955360&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1'
+headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36", "Accept-Encoding":"gzip, deflate", "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "DNT":"1","Connection":"close", "Upgrade-Insecure-Requests":"1"}
+
+page = requests.get(URL1, headers=headers)
+
+soup1 = BeautifulSoup(page.content, "html.parser")
+
+soup2 = BeautifulSoup(soup1.prettify(), "html.parser")
+
+title = soup2.find(id='productTitle').get_text()
+price = soup2.find(class_ = "a-offscreen").get_text(strip = True)
+
+
+print(title)
+print(price)
+
+Output-
+
+                    Anime Stylish Lucky Cloud Pattern Holiday Hawaiian T-Shirt Summer Beach Short Sleeve Shirt Elevate Your Fashion for Men Women
+                   
+$29.89
+
+(3)
+#price.strip()[1:]
+#title.strip()
+
+##################################################################
+# CREATING A TIMESTAMP TO TRACK WHEN THE DATA WAS COLLECTED  
+date = datetime.date.today()
+print(date)
+
+Output-
+2024-05-30
+
+(4)
+##################################################################
+# CREATING A CSV FILE AND WRITING HEADERS & DATA IN THE FILE  
+
+header = ['TITLE','PRICE', 'DATE']
+data = [title, price, date]
+
+
+with open('Amazon_WebScraping_Dataset.csv', 'w', newline='', encoding='UTF8') as f:
+    writer = csv.writer(f)
+    writer.writerow(header)
+    writer.writerow(data)
+
+(5)
+df = pd.read_csv(r'C:\Users\lenovo\Amazon_WebScraping_Dataset.csv')
+print(df)
+
+Output-
+                                               TITLE   PRICE        DATE
+0  \n                    Anime Stylish Lucky Clou...  $29.89  2024-05-30
+
+(6)
+def price_Check():
+    
+    #URL = 'https://www.amazon.com/Costume-T-Shirt-Crewneck-Cartoon-Cosplay/dp/B0CN36J2PB/ref=sr_1_1_sspa?dib=eyJ2IjoiMSJ9.CtTqms-2ICkM5BJmH3lw_KG5_w2fX7OuRWF80UuJ1XrKxo90ajNQNBRvRWQPrQW83nxqULwFOd8aBpwBx21c6qCN0vl98qwfZ5ggc3HPvO9AkH6epeuQosxfIPzfgpfmEolrxMvP8EdkBtjJYdqScGZHbqyM6k8WhDILTuhiL0CIji4ukk6TpqvaRkC6KmsA1l7EOl1DaMYx9Zv-QgyEBD9er8rf_D7AUmUcAJEm8KTNuwIpqDRpVmnu7yb_EiF8cBAE6ebg5vy150lp2HyULP9hFh_0D5h16SOxH9DSZPI.1kBTLjub0j1_nYI9QVpmzsRcDqtp5MLjlfe6ER5EbAg&dib_tag=se&keywords=anime+t+shirts+for+men&qid=1716955360&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1'
+    URL1 = 'https://www.amazon.com/Anime-Stylish-Cloud-Pattern-Hawaiian/dp/B0CJC6DTH9/ref=sr_1_2_sspa?dib=eyJ2IjoiMSJ9.CtTqms-2ICkM5BJmH3lw_KG5_w2fX7OuRWF80UuJ1XrKxo90ajNQNBRvRWQPrQW83nxqULwFOd8aBpwBx21c6qCN0vl98qwfZ5ggc3HPvO9AkH6epeuQosxfIPzfgpfmEolrxMvP8EdkBtjJYdqScGZHbqyM6k8WhDILTuhiL0CIji4ukk6TpqvaRkC6KmsA1l7EOl1DaMYx9Zv-QgyEBD9er8rf_D7AUmUcAJEm8KTNuwIpqDRpVmnu7yb_EiF8cBAE6ebg5vy150lp2HyULP9hFh_0D5h16SOxH9DSZPI.1kBTLjub0j1_nYI9QVpmzsRcDqtp5MLjlfe6ER5EbAg&dib_tag=se&keywords=anime+t+shirts+for+men&qid=1716955360&sr=8-2-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&psc=1'
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36", "Accept-Encoding":"gzip, deflate", "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "DNT":"1","Connection":"close", "Upgrade-Insecure-Requests":"1"}
+
+    page = requests.get(URL1, headers=headers)
+
+    soup1 = BeautifulSoup(page.content, "html.parser")
+
+    soup2 = BeautifulSoup(soup1.prettify(), "html.parser")
+
+    title = soup2.find(id='productTitle').get_text()
+    price = soup2.find(class_ = "a-offscreen").get_text(strip = True)
+
+
+    print(title)
+    print(price)
+
+    import datetime
+
+    date = datetime.date.today()
+    print(date)
+
+    import csv
+
+    header = ['TITLE','PRICE', 'DATE']
+    data = [title, price, date]
+
+
+    with open('Amazon_WebScraping_Dataset.csv', 'w', newline='', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        writer.writerow(data)
+        
+(7)
+while(True):
+    price_Check()
+    time.sleep(86400)
+
+Output-
+
+                    Anime Stylish Lucky Cloud Pattern Holiday Hawaiian T-Shirt Summer Beach Short Sleeve Shirt Elevate Your Fashion for Men Women
+                   
+$29.89
+2024-05-30
+
+(8)
+df = pd.read_csv(r'C:\Users\lenovo\Amazon_WebScraping_Dataset.csv')
+

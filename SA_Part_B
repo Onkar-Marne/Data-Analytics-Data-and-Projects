@@ -1,0 +1,350 @@
+Some intermediate level data analysis tasks that can be performed on the Netflix Movies & TV Shows dataset -
+
+1] TREND ANALYSIS :-
+Step 1: Import Required Libraries and Load Dataset
+Python Code
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Set seaborn aesthetics
+sns.set(style="whitegrid")
+
+Step 2: Trend Analysis of Number of Titles Released by Year
+This trend helps us understand how Netflix's content production has evolved over time.
+Python Code
+# Count the number of titles released each year
+release_year_trend = df['release_year'].value_counts().sort_index()
+
+# Plot the trend of number of titles released per year
+plt.figure(figsize=(12, 6))
+release_year_trend.plot(kind='line', marker='o', color='b')
+plt.title('Trend of Number of Titles Released on Netflix by Year', fontsize=16)
+plt.xlabel('Release Year', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.grid(True)
+plt.show()
+
+Step 3: Trend of Titles Added to Netflix by Year
+This trend shows the number of titles added to Netflix over the years.
+Python Code
+# Extract year from 'date_added'
+df['date_added'] = pd.to_datetime(df['date_added'])
+df['year_added'] = df['date_added'].dt.year
+
+# Count the number of titles added by year
+added_year_trend = df['year_added'].value_counts().sort_index()
+
+# Plot the trend of titles added to Netflix by year
+plt.figure(figsize=(12, 6))
+added_year_trend.plot(kind='bar', color='coral')
+plt.title('Trend of Titles Added to Netflix by Year', fontsize=16)
+plt.xlabel('Year Added', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.xticks(rotation=45)
+plt.show()
+
+Step 4: Genre Popularity Over Time
+This trend helps track how different genres have evolved in terms of popularity over time.
+Python Code
+# Split 'listed_in' column into separate genres
+df['listed_in'] = df['listed_in'].str.split(', ')
+df = df.explode('listed_in')
+
+# Group by release year and genre to count the number of titles per genre per year
+genre_trend = df.groupby(['release_year', 'listed_in']).size().unstack().fillna(0)
+
+# Plot the trend for top 5 genres
+top_genres = genre_trend.sum().sort_values(ascending=False).head(5).index
+plt.figure(figsize=(12, 6))
+for genre in top_genres:
+    plt.plot(genre_trend.index, genre_trend[genre], label=genre)
+
+plt.title('Trend of Popular Genres on Netflix Over Time', fontsize=16)
+plt.xlabel('Release Year', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.legend(title='Genres')
+plt.grid(True)
+plt.show()
+
+Step 5: Country-wise Trend of Content Production
+This trend helps us analyze how content production has changed across different countries over time.
+Python Code
+# Group by release year and country to count the number of titles per country per year
+country_trend = df.groupby(['release_year', 'country']).size().unstack().fillna(0)
+
+# Plot the trend for top 5 content-producing countries
+top_countries = country_trend.sum().sort_values(ascending=False).head(5).index
+plt.figure(figsize=(12, 6))
+for country in top_countries:
+    plt.plot(country_trend.index, country_trend[country], label=country)
+
+plt.title('Trend of Content Production by Country Over Time', fontsize=16)
+plt.xlabel('Release Year', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.legend(title='Countries')
+plt.grid(True)
+plt.show()
+
+Step 6: Trend of Content Ratings Over Time
+This trend shows how the distribution of content ratings (e.g., TV-MA, PG-13) has evolved over the years.
+Python Code
+# Group by release year and rating to count the number of titles per rating per year
+rating_trend = df.groupby(['release_year', 'rating']).size().unstack().fillna(0)
+
+# Plot the trend for top 5 ratings
+top_ratings = rating_trend.sum().sort_values(ascending=False).head(5).index
+plt.figure(figsize=(12, 6))
+for rating in top_ratings:
+    plt.plot(rating_trend.index, rating_trend[rating], label=rating)
+
+plt.title('Trend of Content Ratings on Netflix Over Time', fontsize=16)
+plt.xlabel('Release Year', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.legend(title='Ratings')
+plt.grid(True)
+plt.show()
+
+Summary of Trend Analysis:
+1.	Titles Released per Year: Analysis of the number of titles produced annually, highlighting growth trends.
+2.	Titles Added to Netflix per Year: Insight into when Netflix added the most content to its platform.
+3.	Genre Popularity Over Time: Trends showing how genres like drama, comedy, and documentaries have evolved in popularity.
+4.	Country-wise Production: Visualization of the most active content-producing countries over the years.
+5.	Content Ratings Over Time: Tracking the evolution of ratings like TV-MA, PG-13, and others across time.
+These visualizations can provide valuable insights into Netflix’s content strategy, user preferences, and market trends over time.
+
+2] TIME SERIES ANALYSIS :-
+Step 1: Import Libraries and Load the Dataset
+Python Code
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Convert 'date_added' to datetime format
+df['date_added'] = pd.to_datetime(df['date_added'], errors='coerce')
+
+# Set seaborn aesthetics
+sns.set(style="whitegrid")
+
+Step 2: Handle Missing or Incorrect Date Data
+We'll clean any null values and check for invalid data in the date_added column.
+Python Code
+# Drop rows with missing 'date_added' values
+df_clean = df.dropna(subset=['date_added'])
+
+# Verify the data is clean
+print(df_clean['date_added'].isnull().sum())  # Should be 0
+
+Step 3: Resample Data by Month or Year
+To analyze trends, we can group the data by either month or year. We’ll analyze how many titles were added each month or year.
+Python Code
+# Set 'date_added' as index
+df_clean.set_index('date_added', inplace=True)
+
+# Resample by month to get the number of titles added each month
+monthly_titles = df_clean.resample('M').size()
+
+# Resample by year to get the number of titles added each year
+yearly_titles = df_clean.resample('Y').size()
+
+Step 4: Time Series Plot - Monthly Titles Added
+Plot the time series data to analyze the trend of titles added per month.
+Python Code
+# Plot the monthly time series
+plt.figure(figsize=(14, 6))
+plt.plot(monthly_titles.index, monthly_titles.values, color='dodgerblue', marker='o')
+plt.title('Number of Titles Added to Netflix per Month', fontsize=16)
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.grid(True)
+plt.show()
+
+Step 5: Time Series Plot - Yearly Titles Added
+For a broader perspective, let's plot the trend of titles added per year.
+Python Code
+# Plot the yearly time series
+plt.figure(figsize=(12, 6))
+plt.plot(yearly_titles.index, yearly_titles.values, color='tomato', marker='o')
+plt.title('Number of Titles Added to Netflix per Year', fontsize=16)
+plt.xlabel('Year', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.grid(True)
+plt.show()
+
+Step 6: Decomposing the Time Series
+To gain deeper insights, we can decompose the time series data into trend, seasonality, and residual components.
+Python Code
+from statsmodels.tsa.seasonal import seasonal_decompose
+
+# Decompose the monthly time series
+decomposition = seasonal_decompose(monthly_titles, model='additive', period=12)
+
+# Plot the decomposition
+decomposition.plot()
+plt.show()
+
+Step 7: Time Series Forecasting
+To predict future trends, we can use models like ARIMA (AutoRegressive Integrated Moving Average). Below is a simplified code for applying ARIMA to predict future values.
+Python Code
+from statsmodels.tsa.arima.model import ARIMA
+
+# Fit an ARIMA model (parameters can be tuned further)
+model = ARIMA(monthly_titles, order=(1, 1, 1))
+model_fit = model.fit()
+
+# Forecast for the next 12 months
+forecast = model_fit.forecast(steps=12)
+
+# Plot actual and forecasted values
+plt.figure(figsize=(14, 6))
+plt.plot(monthly_titles.index, monthly_titles.values, label='Actual')
+plt.plot(pd.date_range(monthly_titles.index[-1], periods=12, freq='M'), forecast, label='Forecast', color='green')
+plt.title('Netflix Titles: Actual vs Forecasted (Next 12 Months)', fontsize=16)
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.legend()
+plt.grid(True)
+plt.show()
+Summary of Time Series Analysis:
+1.	Monthly and Yearly Trends: We analyzed the number of titles added to Netflix over time, highlighting patterns in monthly and yearly additions.
+2.	Decomposition: We decomposed the time series to identify trends, seasonality, and residuals.
+3.	Forecasting: We applied the ARIMA model to forecast the number of titles that may be added in the next 12 months.
+This analysis allows you to understand Netflix's content addition patterns and project future trends.
+
+3] SEGMENTATION & CLUSTERING :-
+Step 1: Import Libraries
+Python Code
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Set seaborn aesthetics
+sns.set(style="whitegrid")
+
+Step 2: Data Preprocessing
+We'll focus on features that are relevant for clustering: type, release_year, rating, duration, and listed_in. Since categorical features need to be converted into numerical form, we can use one-hot encoding.
+Python Code
+# Handle missing values in 'duration' and fill them with median
+df['duration'] = df['duration'].fillna('0 min')
+
+# Convert 'duration' to numeric (strip ' min' and convert to integers)
+df['duration'] = df['duration'].str.replace(' min', '').astype(int)
+
+# Perform one-hot encoding for categorical features
+df_encoded = pd.get_dummies(df[['type', 'release_year', 'rating', 'listed_in']])
+
+# Include the numeric 'duration' feature
+df_encoded['duration'] = df['duration']
+
+# Check the shape and first few rows of the encoded data
+df_encoded.head()
+
+Step 3: Standardize the Data
+Clustering algorithms like K-Means are sensitive to the scale of data, so we need to standardize the features using StandardScaler.
+Python Code
+# Standardize the data
+scaler = StandardScaler()
+df_scaled = scaler.fit_transform(df_encoded)
+
+# Convert back to DataFrame for clarity
+df_scaled = pd.DataFrame(df_scaled, columns=df_encoded.columns)
+
+Step 4: Determine the Optimal Number of Clusters Using the Elbow Method
+To decide the optimal number of clusters, we can use the elbow method, which plots the within-cluster sum of squares (WCSS) for different cluster counts.
+Python Code
+# Elbow method to find the optimal number of clusters
+wcss = []
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
+    kmeans.fit(df_scaled)
+    wcss.append(kmeans.inertia_)
+
+# Plot the elbow curve
+plt.figure(figsize=(10, 6))
+plt.plot(range(1, 11), wcss, marker='o', color='b')
+plt.title('Elbow Method for Optimal K', fontsize=16)
+plt.xlabel('Number of Clusters', fontsize=12)
+plt.ylabel('WCSS (Within-cluster sum of squares)', fontsize=12)
+plt.grid(True)
+plt.show()
+
+Step 5: Apply K-Means Clustering
+Based on the elbow curve, we'll choose the optimal number of clusters and perform K-Means clustering.
+Python Code
+# Apply K-Means with the chosen number of clusters (e.g., K=4)
+kmeans = KMeans(n_clusters=4, init='k-means++', random_state=42)
+clusters = kmeans.fit_predict(df_scaled)
+
+# Add the cluster labels to the original DataFrame
+df['Cluster'] = clusters
+
+# Check the distribution of titles among clusters
+df['Cluster'].value_counts()
+
+Step 6: Analyze the Clusters
+Now, we can analyze the clusters to understand their characteristics.
+Cluster-wise Distribution of Content Types -
+Python Code
+# Plot the distribution of content types by cluster
+plt.figure(figsize=(10, 6))
+sns.countplot(x='Cluster', hue='type', data=df, palette='coolwarm')
+plt.title('Distribution of Content Types by Cluster', fontsize=16)
+plt.xlabel('Cluster', fontsize=12)
+plt.ylabel('Count', fontsize=12)
+plt.legend(title='Type')
+plt.show()
+
+Cluster-wise Distribution of Ratings -
+Python Code
+# Plot the distribution of ratings by cluster
+plt.figure(figsize=(12, 6))
+sns.countplot(x='Cluster', hue='rating', data=df, palette='Set2', order=df['Cluster'].value_counts().index)
+plt.title('Distribution of Ratings by Cluster', fontsize=16)
+plt.xlabel('Cluster', fontsize=12)
+plt.ylabel('Count', fontsize=12)
+plt.legend(title='Rating')
+plt.show()
+
+Cluster-wise Distribution of Genres - 
+Python Code
+# Plot the top genres per cluster
+plt.figure(figsize=(14, 6))
+top_genres = df.groupby('Cluster')['listed_in'].apply(lambda x: x.value_counts().head(3))
+top_genres.unstack().plot(kind='bar', stacked=True, figsize=(14, 6), colormap='Paired')
+plt.title('Top Genres by Cluster', fontsize=16)
+plt.xlabel('Cluster', fontsize=12)
+plt.ylabel('Count', fontsize=12)
+plt.legend(title='Genres')
+plt.show()
+
+Step 7: Interpretation of Clusters
+After clustering, we can analyze each cluster to draw insights:
+•	Cluster 0: This cluster might represent high-duration movies with a mix of specific genres and ratings.
+•	Cluster 1: It could focus more on TV shows or a specific genre with shorter durations.
+•	Cluster 2: This might represent titles from particular countries or with certain ratings (e.g., TV-MA, R).
+•	Cluster 3: This cluster could be centered around content added in recent years with a popular genre like documentaries.
+Summary of Segmentation and Clustering:
+1.	Data Preprocessing: We selected relevant features, performed one-hot encoding, and handled missing values.
+2.	Feature Scaling: Standardized the data using StandardScaler.
+3.	Elbow Method: Determined the optimal number of clusters using the elbow curve.
+4.	K-Means Clustering: Applied K-Means clustering and added cluster labels to the original dataset.
+5.	Cluster Analysis: Visualized and interpreted each cluster based on content type, ratings, and genres.
+These clustering techniques allow you to segment Netflix content into distinct groups that share common characteristics, useful for content recommendations, targeted marketing, or improving content offerings on the platform.
+
+
+
+
+
+

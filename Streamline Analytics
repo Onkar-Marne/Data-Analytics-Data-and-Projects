@@ -1,0 +1,312 @@
+Some basic data analysis tasks that can be performed on the Netflix Movies & TV Shows dataset -
+
+1] DATA EXPLORATION & CLEANING :-
+Step 1: Load the Dataset 
+Python Code
+import pandas as pd
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Display the first few rows of the dataset
+df.head()
+
+Step 2: Data Exploration
+1. Check the Structure of the Data
+Python Code 
+# Check the shape of the dataset (rows, columns)
+print(df.shape)
+
+# Check data types of each column
+print(df.dtypes)
+
+# Display column names
+print(df.columns)
+
+2. Summary Statistics for Numeric Columns
+Python Code
+# Get basic summary statistics for numerical columns
+df.describe()
+
+3. Check for Missing Values
+Python Code
+# Check for missing values in the dataset
+missing_values = df.isnull().sum()
+
+# Display missing values
+print(missing_values)
+
+4. Unique Values in Categorical Columns
+Python Code
+# Find unique values for categorical columns such as 'type', 'genre', 'country', etc.
+unique_values = df[['type', 'country', 'rating', 'listed_in']].nunique()
+
+# Display unique values
+print(unique_values)
+
+Step 3: Data Cleaning
+1. Handle Missing Values
+•	For director, cast, country, and rating columns, you can either drop the rows or fill in missing values with placeholders.
+Python Code
+# Fill missing values in 'director', 'cast', 'country', and 'rating' with 'Unknown'
+df['director'].fillna('Unknown', inplace=True)
+df['cast'].fillna('Unknown', inplace=True)
+df['country'].fillna('Unknown', inplace=True)
+df['rating'].fillna('Not Rated', inplace=True)
+
+# For 'date_added', drop missing values as date-added may be critical
+df.dropna(subset=['date_added'], inplace=True)
+
+# Verify no missing values remain
+print(df.isnull().sum())
+
+2. Convert Data Types
+•	Convert the date_added column to datetime format.
+Python Code
+# Convert 'date_added' to datetime format
+df['date_added'] = pd.to_datetime(df['date_added'])
+
+# Verify the change
+print(df['date_added'].dtype)
+
+3. Extract Features from Dates
+•	Extract the year and month from the date_added column to perform more detailed analyses later.
+Python Code
+# Extract year and month from 'date_added'
+df['year_added'] = df['date_added'].dt.year
+df['month_added'] = df['date_added'].dt.month
+
+# Display the first few rows to verify new columns
+df[['date_added', 'year_added', 'month_added']].head()
+
+4. Handle Duplicate Entries
+Python Code
+# Check for duplicates
+duplicate_rows = df[df.duplicated()]
+
+# If duplicates exist, drop them
+df.drop_duplicates(inplace=True)
+
+# Verify no duplicates remain
+print(df.duplicated().sum())
+
+Step 4: Save Cleaned Data
+Once the data is cleaned, save it for further analysis.
+Python Code
+# Save the cleaned dataset to a new CSV file
+df.to_csv('netflix_titles_cleaned.csv', index=False)
+
+This cleaned dataset is now ready for further exploration and analysis.
+
+2] DESCRIPTIVE STATISTICS :-
+Step 1: Summary Statistics for Numeric Columns
+This includes summary statistics such as the count, mean, standard deviation, minimum, maximum, and quartiles for numeric columns.
+Python Code
+# Display summary statistics for numerical columns
+df.describe()
+Since the Netflix dataset primarily contains categorical data, we might have to focus more on count-based statistics for categorical columns.
+
+Step 2: Summary Statistics for Categorical Columns
+We will compute the following:
+•	Mode (most frequent value) for categorical columns.
+•	Value counts for categories like type, rating, genre, etc.
+Python Code
+# Most frequent value for each categorical column
+mode_values = df[['type', 'rating', 'country', 'listed_in']].mode()
+
+# Display the mode for categorical columns
+print(mode_values)
+Python Code
+# Count of unique values in the 'type' column (Movies vs. TV Shows)
+type_counts = df['type'].value_counts()
+
+# Display type counts
+print(type_counts)
+Python Code
+# Count of unique values in the 'rating' column
+rating_counts = df['rating'].value_counts()
+
+# Display rating counts
+print(rating_counts)
+Python Code
+# Count of unique values in the 'country' column
+country_counts = df['country'].value_counts().head(10)  # Display top 10 countries with most shows/movies
+
+# Display country counts
+print(country_counts)
+Python Code
+# Count of unique values in the 'listed_in' (Genres) column
+genre_counts = df['listed_in'].value_counts().head(10)  # Display top 10 genres
+
+# Display genre counts
+print(genre_counts)
+
+Step 3: Distribution of Shows/Movies Over the Years
+Analyzing how the distribution of content has evolved over time (both for Movies and TV Shows).
+Python Code
+# Count of shows/movies released by year
+release_year_distribution = df['release_year'].value_counts().sort_index()
+
+# Plot the distribution of release years
+release_year_distribution.plot(kind='bar', figsize=(12,6), title='Distribution of Netflix Movies and TV Shows by Release Year')
+Python Code
+# Distribution of content added to Netflix over the years
+added_year_distribution = df['year_added'].value_counts().sort_index()
+
+# Plot the distribution of content added over time
+added_year_distribution.plot(kind='line', figsize=(12,6), title='Number of Titles Added to Netflix by Year')
+
+Step 4: Duration Analysis for Movies
+Since only Movies have a duration column, let's focus on analyzing the duration of movies.
+Python Code
+# Filter movies only
+movies_df = df[df['type'] == 'Movie']
+
+# Convert duration to numeric by removing ' min' from the string and converting to integers
+movies_df['duration'] = movies_df['duration'].str.replace(' min', '').astype(int)
+
+# Summary statistics for movie duration
+movies_duration_stats = movies_df['duration'].describe()
+
+# Display the statistics for movie duration
+print(movies_duration_stats)
+
+Step 5: Analysis by Rating
+Let's analyze the distribution of movies and TV shows across different ratings.
+Python Code
+# Plot the distribution of movies/TV shows by rating
+df['rating'].value_counts().plot(kind='bar', figsize=(12,6), title='Distribution of Netflix Titles by Rating')
+
+Summary of Key Descriptive Statistics:
+•	Numeric Data: Summary statistics for numeric columns (e.g., release_year, duration).
+•	Categorical Data: Value counts for type, rating, country, and genre.
+•	Temporal Analysis: Distribution of content over time (release year and added year).
+•	Duration Analysis: Focused on the duration of movies.
+These statistics provide a comprehensive overview of the dataset, helping you understand the distribution of content, genres, countries, and temporal trends on Netflix.
+
+3] DATA VISUALIZATION :-
+Step 1: Import Required Libraries
+Python Code
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('netflix_titles.csv')
+
+# Configure default aesthetics for seaborn
+sns.set(style="whitegrid")
+
+Step 2: Distribution of Movies vs. TV Shows
+A bar plot to visualize the distribution of content types (Movies vs. TV Shows).
+Python Code
+# Count of Movies vs TV Shows
+plt.figure(figsize=(8, 6))
+sns.countplot(x='type', data=df, palette='viridis')
+plt.title('Distribution of Movies vs TV Shows on Netflix', fontsize=16)
+plt.xlabel('Type', fontsize=12)
+plt.ylabel('Count', fontsize=12)
+plt.show()
+
+Step 3: Top 10 Countries by Number of Titles
+A bar plot to display the top 10 countries producing the most content on Netflix.
+Python Code
+# Top 10 countries by the number of titles
+top_countries = df['country'].value_counts().head(10)
+
+# Plotting the top 10 countries
+plt.figure(figsize=(10, 6))
+sns.barplot(x=top_countries.values, y=top_countries.index, palette='magma')
+plt.title('Top 10 Countries by Number of Titles on Netflix', fontsize=16)
+plt.xlabel('Number of Titles', fontsize=12)
+plt.ylabel('Country', fontsize=12)
+plt.show()
+
+Step 4: Distribution of Content Ratings
+A bar plot to visualize the distribution of content ratings (e.g., TV-MA, PG-13, R, etc.).
+Python Code
+# Plot the distribution of content ratings
+plt.figure(figsize=(10, 6))
+sns.countplot(y='rating', data=df, palette='coolwarm', order=df['rating'].value_counts().index)
+plt.title('Distribution of Content Ratings on Netflix', fontsize=16)
+plt.xlabel('Count', fontsize=12)
+plt.ylabel('Rating', fontsize=12)
+plt.show()
+
+Step 5: Number of Titles Released Each Year
+A line plot showing how the number of Netflix titles (both Movies and TV Shows) has changed over the years.
+Python Code
+# Distribution of release years
+release_year_distribution = df['release_year'].value_counts().sort_index()
+
+# Plotting the number of titles released each year
+plt.figure(figsize=(12, 6))
+release_year_distribution.plot(kind='line', color='b')
+plt.title('Number of Titles Released on Netflix by Year', fontsize=16)
+plt.xlabel('Release Year', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.grid(True)
+plt.show()
+
+Step 6: Number of Titles Added to Netflix by Year
+A bar plot to visualize how the number of titles added to Netflix has evolved over the years.
+Python Code
+# Extract the year from the 'date_added' column (previously done in the cleaning phase)
+df['year_added'] = pd.to_datetime(df['date_added']).dt.year
+
+# Distribution of added years
+added_year_distribution = df['year_added'].value_counts().sort_index()
+
+# Plotting the number of titles added each year
+plt.figure(figsize=(12, 6))
+sns.barplot(x=added_year_distribution.index, y=added_year_distribution.values, palette='Blues_d')
+plt.title('Number of Titles Added to Netflix by Year', fontsize=16)
+plt.xlabel('Year Added', fontsize=12)
+plt.ylabel('Number of Titles', fontsize=12)
+plt.xticks(rotation=45)
+plt.show()
+
+Step 7: Distribution of Movie Duration
+A histogram to visualize the distribution of movie durations.
+Python Code
+# Filter only Movies
+movies_df = df[df['type'] == 'Movie']
+
+# Convert the 'duration' column to numeric (strip 'min')
+movies_df['duration'] = movies_df['duration'].str.replace(' min', '').astype(int)
+
+# Plot the distribution of movie durations
+plt.figure(figsize=(10, 6))
+sns.histplot(movies_df['duration'], bins=30, kde=False, color='purple')
+plt.title('Distribution of Movie Durations on Netflix', fontsize=16)
+plt.xlabel('Duration (minutes)', fontsize=12)
+plt.ylabel('Number of Movies', fontsize=12)
+plt.show()
+
+Step 8: Heatmap of Correlations Between Numeric Features
+Although the Netflix dataset contains mostly categorical data, we can still compute and visualize the correlation between the few numeric features (like release_year, year_added, duration for movies).
+Python Code
+# Filter numeric columns
+numeric_cols = ['release_year', 'year_added']
+
+# Compute correlation matrix
+corr_matrix = df[numeric_cols].corr()
+
+# Plot the heatmap
+plt.figure(figsize=(8, 6))
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', linewidths=0.5)
+plt.title('Correlation Matrix of Numeric Features', fontsize=16)
+plt.show()
+
+Summary of Data Visualizations:
+1.	Bar Plot: Distribution of Movies vs. TV Shows.
+2.	Bar Plot: Top 10 Countries by Content Production.
+3.	Bar Plot: Distribution of Content Ratings.
+4.	Line Plot: Number of Titles Released Each Year.
+5.	Bar Plot: Number of Titles Added to Netflix Each Year.
+6.	Histogram: Distribution of Movie Durations.
+7.	Heatmap: Correlations between Numeric Features.
+These visualizations provide a comprehensive overview of the dataset and highlight key trends and patterns that can be used to derive valuable insights for Netflix's content strategy.
+
+
+
